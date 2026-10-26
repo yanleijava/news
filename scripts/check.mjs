@@ -41,27 +41,36 @@ test("front matter date must match the filename", () => {
   );
 });
 
-test("build lists digests newest first and drops removed days", () => {
+function fixtureRoot() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "digest-"));
   fs.mkdirSync(path.join(root, "content"));
   fs.mkdirSync(path.join(root, "assets"));
   fs.copyFileSync(path.join(repoRoot, "assets", "style.css"), path.join(root, "assets", "style.css"));
-  fs.writeFileSync(
-    path.join(root, "content", "2026-10-26.md"),
-    "---\ndate: 2026-10-26\ntitle: 较早的一篇 <script>\nsummary: 占位摘要\nsample: true\n---\n\n## 财经\n\n- **【占位】** 旧\n",
-  );
-  fs.writeFileSync(
-    path.join(root, "content", "2026-12-01.md"),
-    "---\ndate: 2026-12-01\ntitle: 较新的一篇\nsummary: 应该排在最前\n---\n\n正文\n",
-  );
+  return root;
+}
 
-  build(root);
+const olderMarkdown = "---\ndate: 2026-10-26\ntitle: 较早的一篇 <script>\nsummary: 占位摘要\nsample: true\n---\n\n## 财经\n\n- **【占位】** 旧\n";
+const newerMarkdown = "---\ndate: 2026-12-01\ntitle: 较新的一篇\nsummary: 应该排在最前\n---\n\n正文\n";
+
+test("publishing appends history and never drops or overwrites older digests", () => {
+  const root = fixtureRoot();
+  fs.writeFileSync(path.join(root, "content", "2026-10-26.md"), olderMarkdown);
+  fs.writeFileSync(path.join(root, "content", "2026-12-01.md"), newerMarkdown);
+
+  const listed = build(root).map((digest) => digest.date);
+  assert.deepEqual(listed, ["2026-12-01", "2026-10-26"]);
   const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const newer = index.indexOf('href="2026/12/01/"');
   const older = index.indexOf('href="2026/10/26/"');
   assert.ok(newer !== -1 && older !== -1 && newer < older);
   assert.match(index, /id="digest-list"/);
+  assert.match(index, /按月浏览/);
+  assert.ok(index.indexOf("2026年12月") < index.indexOf("2026年10月"));
+  assert.match(index, /href="archive\/"/);
+  const archive = fs.readFileSync(path.join(root, "archive", "index.html"), "utf8");
+  assert.ok(archive.indexOf('href="../2026/12/01/"') < archive.indexOf('href="../2026/10/26/"'));
   const sample = fs.readFileSync(path.join(root, "2026/10/26/index.html"), "utf8");
+  const december = fs.readFileSync(path.join(root, "2026/12/01/index.html"), "utf8");
   assert.match(sample, /示例 \/ 占位/);
   assert.match(sample, /&lt;script&gt;/);
   assert.doesNotMatch(sample, /<script/);
@@ -69,19 +78,52 @@ test("build lists digests newest first and drops removed days", () => {
 
   fs.unlinkSync(path.join(root, "content", "2026-10-26.md"));
   build(root);
-  assert.equal(fs.existsSync(path.join(root, "2026/10/26/index.html")), false);
-  assert.equal(fs.existsSync(path.join(root, "2026/12/01/index.html")), true);
-  const rebuilt = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.doesNotMatch(rebuilt, /2026\/10\/26\//);
-  assert.match(rebuilt, /2026\/12\/01\//);
+  assert.equal(fs.readFileSync(path.join(root, "2026/10/26/index.html"), "utf8"), sample);
+  assert.equal(fs.readFileSync(path.join(root, "2026/12/01/index.html"), "utf8"), december);
+  const kept = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.match(kept, /2026\/10\/26\//);
+  assert.match(kept, /2026\/12\/01\//);
+  assert.ok(kept.indexOf('href="2026/12/01/"') < kept.indexOf('href="2026/10/26/"'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "archive.json"), "utf8"));
+  assert.deepEqual(
+    manifest.digests.map((entry) => entry.date),
+    ["2026-10-26", "2026-12-01"],
+  );
+
+  fs.writeFileSync(path.join(root, "content", "2026-10-26.md"), olderMarkdown.replace("占位摘要", "被改写的摘要"));
+  const indexBeforeRefusal = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const manifestBeforeRefusal = fs.readFileSync(path.join(root, "archive.json"), "utf8");
+  assert.throws(() => build(root), /拒绝覆盖已发布的 2026-10-26/);
+  assert.equal(fs.readFileSync(path.join(root, "2026/10/26/index.html"), "utf8"), sample);
+  assert.equal(fs.readFileSync(path.join(root, "index.html"), "utf8"), indexBeforeRefusal);
+  assert.equal(fs.readFileSync(path.join(root, "archive.json"), "utf8"), manifestBeforeRefusal);
+
+  fs.writeFileSync(path.join(root, "content", "2026-10-26.md"), olderMarkdown);
+  fs.writeFileSync(
+    path.join(root, "content", "2026-12-02.md"),
+    "---\ndate: 2026-12-02\ntitle: 最新的一篇\nsummary: 追加在最前\n---\n\n新的一天\n",
+  );
+  build(root);
+  assert.equal(fs.readFileSync(path.join(root, "2026/10/26/index.html"), "utf8"), sample);
+  assert.equal(fs.readFileSync(path.join(root, "2026/12/01/index.html"), "utf8"), december);
+  const appended = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const first = appended.indexOf('href="2026/12/02/"');
+  const second = appended.indexOf('href="2026/12/01/"');
+  const third = appended.indexOf('href="2026/10/26/"');
+  assert.ok(first !== -1 && first < second && second < third);
 });
 
 test("published site contains the sample digest, CNAME, and no analytics", () => {
+  const samplePage = path.join(repoRoot, "2026/10/26/index.html");
+  const before = fs.readFileSync(samplePage);
   const digests = build(repoRoot);
   assert.deepEqual(
     digests.map((digest) => digest.date),
     ["2026-10-26"],
   );
+  assert.deepEqual(fs.readFileSync(samplePage), before);
+  build(repoRoot);
+  assert.deepEqual(fs.readFileSync(samplePage), before);
   const cname = fs.readFileSync(path.join(repoRoot, "CNAME"), "utf8").trim();
   assert.equal(cname, "news.chaoshen.io");
   assert.equal(fs.existsSync(path.join(repoRoot, ".nojekyll")), true);

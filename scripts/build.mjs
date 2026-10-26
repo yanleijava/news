@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,7 +9,7 @@ export const SITE = {
   kicker: "Chaoshen News",
   tagline: "每日财经与科技摘要",
   origin: "https://news.chaoshen.io",
-  description: "按日归档的中文财经与科技摘要。示例篇目标有「占位」，不是新闻。",
+  description: "按日归档的中文财经与科技摘要。首页保留全部历史，从新到旧，新的一天只追加。示例篇目标有「占位」，不是新闻。",
 };
 
 const WEEKDAYS = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
@@ -169,8 +170,16 @@ function stripQuotes(value) {
   return value;
 }
 
+export function normalizeText(raw) {
+  return String(raw).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+}
+
+export function contentSha(raw) {
+  return createHash("sha256").update(normalizeText(raw)).digest("hex");
+}
+
 export function parseDigest(filename, raw) {
-  const text = raw.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const text = normalizeText(raw);
   if (!text.startsWith("---\n")) {
     throw new Error(`${filename}: 缺少开头的 front matter（必须以 --- 开始）`);
   }
@@ -217,7 +226,9 @@ export function loadDigests(contentDir) {
     if (!name.endsWith(".md")) continue;
     if (!DATE_FILE.test(name)) throw new Error(`${name}: 内容文件名必须是 YYYY-MM-DD.md`);
     const raw = fs.readFileSync(path.join(contentDir, name), "utf8");
-    digests.push(parseDigest(name, raw));
+    const digest = parseDigest(name, raw);
+    digest.contentSha = contentSha(raw);
+    digests.push(digest);
   }
   digests.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
   return digests;
@@ -252,8 +263,9 @@ function footer(home) {
     </footer>`;
 }
 
-function shell({ title, description, canonical, home, depth, main, isHome }) {
+function shell({ title, description, canonical, home, depth, main, isHome, ogType }) {
   const prefix = depth === 0 ? "" : "../".repeat(depth);
+  const type = ogType || (isHome ? "website" : "article");
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -264,7 +276,7 @@ function shell({ title, description, canonical, home, depth, main, isHome }) {
   <link rel="canonical" href="${escapeHtml(canonical)}">
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
-  <meta property="og:type" content="${isHome ? "website" : "article"}">
+  <meta property="og:type" content="${type}">
   <meta property="og:url" content="${escapeHtml(canonical)}">
   <meta property="og:locale" content="zh_CN">
   <meta name="theme-color" content="#fbf8f2">
@@ -290,21 +302,125 @@ function digestCard(digest) {
   return `        <li>
           <article class="digest-card" data-date="${digest.date}">
             <p class="meta"><time datetime="${digest.date}">${escapeHtml(digest.label)}</time> · ${escapeHtml(digest.weekday)}</p>${badge}
-            <h3><a href="${digest.urlPath}">${escapeHtml(digest.title)}</a></h3>
+            <h4><a href="${digest.urlPath}">${escapeHtml(digest.title)}</a></h4>
             <p class="summary">${escapeHtml(digest.summary)}</p>
             <p class="more"><a href="${digest.urlPath}">阅读全文</a></p>
           </article>
         </li>`;
 }
 
+function groupByMonth(digests) {
+  const groups = [];
+  for (const digest of digests) {
+    const key = digest.date.slice(0, 7);
+    const label = `${Number(key.slice(0, 4))}年${Number(key.slice(5, 7))}月`;
+    const last = groups[groups.length - 1];
+    if (!last || last.key !== key) groups.push({ key, label, items: [digest] });
+    else last.items.push(digest);
+  }
+  return groups;
+}
+
+function groupByYear(digests) {
+  const years = [];
+  for (const digest of digests) {
+    const year = digest.date.slice(0, 4);
+    let yearGroup = years.find((item) => item.year === year);
+    if (!yearGroup) {
+      yearGroup = { year, months: [] };
+      years.push(yearGroup);
+    }
+    const key = digest.date.slice(0, 7);
+    let monthGroup = yearGroup.months.find((item) => item.key === key);
+    if (!monthGroup) {
+      monthGroup = { key, label: `${Number(key.slice(5, 7))}月`, items: [] };
+      yearGroup.months.push(monthGroup);
+    }
+    monthGroup.items.push(digest);
+  }
+  return years;
+}
+
 function homeMain(digests) {
-  const list = digests.length
-    ? `        <ol class="digest-list" id="digest-list">\n${digests.map(digestCard).join("\n")}\n        </ol>`
-    : `        <p class="empty">还没有日报。</p>`;
-  return `      <section aria-labelledby="latest-heading">
-        <h2 id="latest-heading" class="section-label">最新日报</h2>
-${list}
+  if (!digests.length) {
+    return `      <section aria-labelledby="latest-heading">
+        <h2 id="latest-heading" class="section-label">全部日报</h2>
+        <p class="empty">还没有日报。</p>
       </section>`;
+  }
+  const groups = groupByMonth(digests);
+  const nav = groups
+    .map(
+      (group) =>
+        `            <li><a href="#month-${group.key}">${escapeHtml(group.label)}</a> <span class="count">${group.items.length} 篇</span></li>`,
+    )
+    .join("\n");
+  const sections = groups
+    .map(
+      (group) => `        <section class="month-group" id="month-${group.key}" aria-labelledby="month-${group.key}-title">
+          <h3 id="month-${group.key}-title" class="month-heading">${escapeHtml(group.label)}</h3>
+          <ol class="digest-list">
+${group.items.map(digestCard).join("\n")}
+          </ol>
+        </section>`,
+    )
+    .join("\n");
+  return `      <section aria-labelledby="latest-heading">
+        <h2 id="latest-heading" class="section-label">全部日报</h2>
+        <p class="archive-note">从新到旧列出全部历史。已发布的日期页会保留，发布时只追加新的一天。</p>
+        <nav class="archive-nav" aria-label="按月浏览">
+          <ol class="month-index">
+${nav}
+          </ol>
+        </nav>
+        <div id="digest-list">
+${sections}
+        </div>
+        <p class="more"><a href="archive/">查看归档</a></p>
+      </section>`;
+}
+
+function archiveItem(digest) {
+  const badge = digest.sample ? ` <span class="badge">示例 / 占位</span>` : "";
+  const day = `${Number(digest.date.slice(8, 10))}日`;
+  return `              <li><time datetime="${digest.date}">${day}</time> <a href="../${digest.urlPath}">${escapeHtml(digest.title)}</a>${badge}</li>`;
+}
+
+function archiveMain(digests) {
+  if (!digests.length) {
+    return `      <article class="article">
+        <h1>归档</h1>
+        <p class="empty">还没有日报。</p>
+        <p class="back"><a href="../">返回全部日报</a></p>
+      </article>`;
+  }
+  const years = groupByYear(digests)
+    .map((year) => {
+      const months = year.months
+        .map((month) => {
+          const items = month.items.map(archiveItem).join("\n");
+          return `          <section aria-labelledby="archive-${month.key}">
+            <h3 id="archive-${month.key}">${escapeHtml(month.label)}</h3>
+            <ul class="archive-list">
+${items}
+            </ul>
+          </section>`;
+        })
+        .join("\n");
+      return `        <section class="archive-year" aria-labelledby="year-${year.year}">
+          <h2 id="year-${year.year}">${escapeHtml(year.year)}年</h2>
+${months}
+        </section>`;
+    })
+    .join("\n");
+  return `      <article class="article">
+        <header>
+          <h1>归档</h1>
+          <p class="archive-note">共 ${digests.length} 篇，从新到旧。每一天的页面发布后不再替换。</p>
+        </header>
+${years}
+        <p class="back"><a href="../">返回全部日报</a></p>
+      </article>`;
 }
 
 function articleMain(digest, home) {
@@ -320,30 +436,6 @@ function articleMain(digest, home) {
         <div class="prose">${prose}</div>
         <p class="back"><a href="${home}">返回全部日报</a></p>
       </article>`;
-}
-
-function cleanStaleDigests(root, keep) {
-  if (!fs.existsSync(root)) return;
-  for (const year of fs.readdirSync(root, { withFileTypes: true })) {
-    if (!year.isDirectory() || !/^\d{4}$/.test(year.name)) continue;
-    const yearPath = path.join(root, year.name);
-    for (const month of fs.readdirSync(yearPath, { withFileTypes: true })) {
-      if (!month.isDirectory() || !/^\d{2}$/.test(month.name)) continue;
-      const monthPath = path.join(yearPath, month.name);
-      for (const day of fs.readdirSync(monthPath, { withFileTypes: true })) {
-        if (!day.isDirectory() || !/^\d{2}$/.test(day.name)) continue;
-        const rel = `${year.name}/${month.name}/${day.name}/index.html`;
-        const dayPath = path.join(monthPath, day.name);
-        if (!keep.has(rel)) {
-          const indexPath = path.join(dayPath, "index.html");
-          if (fs.existsSync(indexPath)) fs.unlinkSync(indexPath);
-          if (fs.readdirSync(dayPath).length === 0) fs.rmdirSync(dayPath);
-        }
-      }
-      if (fs.readdirSync(monthPath).length === 0) fs.rmdirSync(monthPath);
-    }
-    if (fs.readdirSync(yearPath).length === 0) fs.rmdirSync(yearPath);
-  }
 }
 
 function write404(root) {
@@ -368,8 +460,8 @@ ${header("/", false)}
     <main id="main">
       <article class="article">
         <h1>找不到这一页</h1>
-        <p>这个地址没有对应的日报。已发布的日报在 <code>/年/月/日/</code>，例如 <a href="/2026/10/26/">/2026/10/26/</a>。</p>
-        <p class="back"><a href="/">返回全部日报</a></p>
+        <p>这个地址没有对应的日报。已发布的日报会一直留在 <code>/年/月/日/</code>，例如 <a href="/2026/10/26/">/2026/10/26/</a>。</p>
+        <p class="back"><a href="/archive/">查看归档</a> · <a href="/">返回全部日报</a></p>
       </article>
     </main>
 ${footer("/")}
@@ -380,12 +472,91 @@ ${footer("/")}
   fs.writeFileSync(path.join(root, "404.html"), html);
 }
 
-export function build(rootDir) {
-  const root = path.resolve(rootDir);
-  const digests = loadDigests(path.join(root, "content"));
-  const keep = new Set(digests.map((digest) => `${digest.urlPath}index.html`));
-  cleanStaleDigests(root, keep);
+function manifestPath(root) {
+  return path.join(root, "archive.json");
+}
 
+function readManifest(root) {
+  const file = manifestPath(root);
+  if (!fs.existsSync(file)) return { digests: [] };
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(file, "utf8"));
+  } catch (error) {
+    throw new Error(`archive.json 无法解析：${error.message}`);
+  }
+  if (!data || !Array.isArray(data.digests)) throw new Error("archive.json 的 digests 必须是数组");
+  const seen = new Set();
+  for (const entry of data.digests) {
+    if (!entry || typeof entry !== "object") throw new Error("archive.json 含有无效条目");
+    if (!assertValidDate(entry.date)) throw new Error(`archive.json 日期无效：${entry.date}`);
+    if (seen.has(entry.date)) throw new Error(`archive.json 重复日期：${entry.date}`);
+    seen.add(entry.date);
+    if (typeof entry.title !== "string" || entry.title === "") throw new Error(`${entry.date}: archive.json 缺少 title`);
+    if (typeof entry.summary !== "string" || entry.summary === "") throw new Error(`${entry.date}: archive.json 缺少 summary`);
+    if (typeof entry.sample !== "boolean") throw new Error(`${entry.date}: archive.json 的 sample 必须是布尔值`);
+    if (typeof entry.contentSha !== "string" || !/^[a-f0-9]{64}$/.test(entry.contentSha)) {
+      throw new Error(`${entry.date}: archive.json 的 contentSha 无效`);
+    }
+  }
+  return data;
+}
+
+function writeManifest(root, manifest) {
+  fs.writeFileSync(manifestPath(root), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+function entryFromDigest(digest) {
+  return {
+    date: digest.date,
+    title: digest.title,
+    summary: digest.summary,
+    sample: digest.sample,
+    path: digest.urlPath,
+    contentSha: digest.contentSha,
+  };
+}
+
+function decorateEntry(entry) {
+  return {
+    date: entry.date,
+    title: entry.title,
+    summary: entry.summary,
+    sample: entry.sample,
+    contentSha: entry.contentSha,
+    html: "",
+    ...formatDate(entry.date),
+  };
+}
+
+function newestFirst(a, b) {
+  if (a.date === b.date) return 0;
+  return a.date < b.date ? 1 : -1;
+}
+
+function pagePath(root, digest) {
+  return path.join(root, digest.urlPath, "index.html");
+}
+
+function writeDigestPage(root, digest) {
+  const file = pagePath(root, digest);
+  if (fs.existsSync(file)) {
+    throw new Error(`拒绝覆盖已发布的 ${digest.date}。${digest.urlPath}index.html 已存在，构建不会替换它。`);
+  }
+  const page = shell({
+    title: `${digest.title} · ${SITE.name}`,
+    description: digest.summary,
+    canonical: `${SITE.origin}/${digest.urlPath}`,
+    home: "../../../",
+    depth: 3,
+    isHome: false,
+    main: articleMain(digest, "../../../"),
+  });
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `<!-- Published digest ${digest.date}. Do not overwrite. -->\n${page}`);
+}
+
+function writeIndexes(root, digests) {
   const index = shell({
     title: SITE.name,
     description: SITE.description,
@@ -395,25 +566,69 @@ export function build(rootDir) {
     isHome: true,
     main: homeMain(digests),
   });
-  fs.writeFileSync(path.join(root, "index.html"), `<!-- Generated by scripts/build.mjs. Edit content/*.md and rebuild. -->\n${index}`);
+  fs.writeFileSync(
+    path.join(root, "index.html"),
+    `<!-- Generated by scripts/build.mjs from archive.json. Dated pages are append-only. -->\n${index}`,
+  );
 
-  for (const digest of digests) {
-    const page = shell({
-      title: `${digest.title} · ${SITE.name}`,
-      description: digest.summary,
-      canonical: `${SITE.origin}/${digest.urlPath}`,
-      home: "../../../",
-      depth: 3,
-      isHome: false,
-      main: articleMain(digest, "../../../"),
-    });
-    const dir = path.join(root, digest.urlPath);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "index.html"), `<!-- Generated by scripts/build.mjs. Edit content/*.md and rebuild. -->\n${page}`);
+  const archive = shell({
+    title: `归档 · ${SITE.name}`,
+    description: `财经科技日报归档，共 ${digests.length} 篇，从新到旧。`,
+    canonical: `${SITE.origin}/archive/`,
+    home: "../",
+    depth: 1,
+    isHome: false,
+    ogType: "website",
+    main: archiveMain(digests),
+  });
+  fs.mkdirSync(path.join(root, "archive"), { recursive: true });
+  fs.writeFileSync(
+    path.join(root, "archive", "index.html"),
+    `<!-- Generated by scripts/build.mjs from archive.json. Dated pages are append-only. -->\n${archive}`,
+  );
+}
+
+export function build(rootDir) {
+  const root = path.resolve(rootDir);
+  const fromFiles = loadDigests(path.join(root, "content"));
+  const manifest = readManifest(root);
+  const known = new Map();
+  for (const entry of manifest.digests) {
+    if (known.has(entry.date)) throw new Error(`archive.json 重复日期：${entry.date}`);
+    known.set(entry.date, entry);
   }
 
+  for (const digest of fromFiles) {
+    const existing = known.get(digest.date);
+    if (existing && existing.contentSha !== digest.contentSha) {
+      throw new Error(
+        `拒绝覆盖已发布的 ${digest.date}。这一天的日报已经固定，请不要修改 content/${digest.date}.md；新内容请写成新的日期文件。`,
+      );
+    }
+  }
+
+  const toCreate = [];
+  const incoming = [...fromFiles].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  for (const digest of incoming) {
+    const existing = known.get(digest.date);
+    const file = pagePath(root, digest);
+    if (existing) {
+      if (!fs.existsSync(file)) toCreate.push(digest);
+      continue;
+    }
+    const entry = entryFromDigest(digest);
+    manifest.digests.push(entry);
+    known.set(digest.date, entry);
+    if (!fs.existsSync(file)) toCreate.push(digest);
+  }
+
+  for (const digest of toCreate) writeDigestPage(root, digest);
+  writeManifest(root, manifest);
+
+  const published = manifest.digests.map(decorateEntry).sort(newestFirst);
+  writeIndexes(root, published);
   write404(root);
-  return digests;
+  return published;
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -422,6 +637,6 @@ if (isMain) {
     ? path.resolve(process.argv[2])
     : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const digests = build(root);
-  console.log(`built ${digests.length} digest${digests.length === 1 ? "" : "s"}`);
+  console.log(`history ${digests.length} digest${digests.length === 1 ? "" : "s"}, newest first`);
   for (const digest of digests) console.log(`  ${digest.date}  /${digest.urlPath}`);
 }
