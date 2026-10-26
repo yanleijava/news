@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>找不到这一页 · 财经科技日报</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <style>
+:root {
+  --bg: #e6e0d4;
+  --paper: #fbf8f2;
+  --card: #fffdf9;
+  --ink: #1c1915;
+  --muted: #5c554c;
+  --rule: #ddd4c6;
+  --accent: #8f2d1c;
+  --accent-soft: #f6e7e0;
+  --focus: #1c1915;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.skip {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.35rem 0.6rem;
+  z-index: 2;
+}
+
+.skip:focus {
+  top: 0.75rem;
+}
+
+.sheet {
+  max-width: 44rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--paper);
+  padding: 2.4rem 2rem 3rem;
+  box-shadow: 0 0 0 1px rgba(40, 30, 20, 0.05);
+}
+
+.masthead {
+  margin-bottom: 1.8rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--ink);
+  position: relative;
+}
+
+.masthead::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  border-bottom: 3px solid var(--ink);
+}
+
+.masthead-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.kicker,
+.edition,
+.tagline,
+.section-label,
+.meta,
+.article-kicker {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.kicker,
+.edition,
+.section-label {
+  margin: 0;
+  text-transform: none;
+}
+
+.masthead h1,
+.masthead .brand {
+  margin: 0.45rem 0 0.15rem;
+  font-family: "Iowan Old Style", Palatino, "Songti SC", "Noto Serif SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+}
+
+.masthead .brand {
+  margin-top: 0.45rem;
+}
+
+.masthead .brand a,
+.masthead h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tagline {
+  margin: 0.2rem 0 0;
+  letter-spacing: 0.04em;
+}
+
+.section-label {
+  margin: 0 0 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+}
+
+.digest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.digest-card {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  padding: 0.95rem 1rem 0.85rem;
+}
+
+.digest-card h4 {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 1.22rem;
+  line-height: 1.45;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.digest-card h4 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.digest-card h4 a:hover,
+.more a:hover,
+.back a:hover,
+.prose a:hover {
+  color: var(--accent);
+}
+
+.summary,
+.article-kicker,
+.meta {
+  margin: 0;
+}
+
+.summary {
+  color: var(--ink);
+}
+
+.badge {
+  display: inline-block;
+  margin: 0.45rem 0 0;
+  padding: 0 0.4rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+}
+
+.more,
+.back {
+  margin: 0.75rem 0 0;
+}
+
+.more a,
+.back a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.article h1 {
+  margin: 0.25rem 0 0.35rem;
+  font-size: 1.7rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.notice {
+  margin: 1rem 0 1.2rem;
+  padding: 0.65rem 0.8rem;
+  background: var(--accent-soft);
+  color: #6d2618;
+  font-size: 0.95rem;
+}
+
+.prose h2 {
+  margin: 1.8rem 0 0.55rem;
+  padding-bottom: 0.28rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.28rem;
+  line-height: 1.4;
+}
+
+.prose h3 {
+  margin: 1.25rem 0 0.35rem;
+  font-size: 1.08rem;
+}
+
+.prose p,
+.prose ul,
+.prose blockquote {
+  margin: 0.7rem 0;
+}
+
+.prose ul {
+  padding-left: 1.25rem;
+}
+
+.prose li {
+  margin: 0.4rem 0;
+  padding-left: 0.15rem;
+}
+
+.prose li::marker {
+  color: var(--accent);
+}
+
+.prose a {
+  color: var(--accent);
+  text-underline-offset: 0.16em;
+}
+
+.prose blockquote {
+  margin-left: 0;
+  padding: 0.1rem 0 0.1rem 0.85rem;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+}
+
+.prose code {
+  font-family: ui-monospace, "Sarasa Mono SC", "Noto Sans Mono CJK SC", monospace;
+  font-size: 0.92em;
+  background: #f0ebe3;
+  padding: 0.05em 0.28em;
+}
+
+.archive-note {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.archive-nav {
+  margin: 0 0 0.4rem;
+}
+
+.month-index,
+.archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.month-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.month-index a,
+.archive-list a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.month-heading {
+  margin: 1.35rem 0 0.7rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.archive-year {
+  margin: 1.5rem 0 0.3rem;
+  font-size: 1.2rem;
+}
+
+.archive-list li {
+  margin: 0.4rem 0;
+}
+
+.archive-list .badge {
+  margin-left: 0.45rem;
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.colophon {
+  margin-top: 2.8rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.colophon p {
+  margin: 0.3rem 0;
+}
+
+.colophon a {
+  color: inherit;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: #efd3c8;
+}
+
+@media (max-width: 640px) {
+  .sheet {
+    padding: 1.35rem 1.05rem 2.4rem;
+  }
+
+  .masthead h1,
+  .masthead .brand {
+    font-size: 1.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .article h1 {
+    font-size: 1.45rem;
+  }
+
+  .kicker,
+  .edition {
+    letter-spacing: 0.04em;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <div class="sheet">
+    <header class="masthead">
+      <div class="masthead-top">
+        <p class="kicker">Chaoshen News</p>
+        <p class="edition">日期按北京时间</p>
+      </div>
+      <p class="brand"><a href="/">财经科技日报</a></p>
+      <p class="tagline">每日财经与科技摘要</p>
+    </header>
+    <main id="main">
+      <article class="article">
+        <h1>找不到这一页</h1>
+        <p>这个地址没有对应的日报。已发布的日报会一直留在 <code>/年/月/日/</code>，例如 <a href="/2026/10/26/">/2026/10/26/</a>。</p>
+        <p class="back"><a href="/archive/">查看归档</a> · <a href="/">返回全部日报</a></p>
+      </article>
+    </main>
+    <footer class="colophon">
+      <p><a href="/">财经科技日报</a> · Chaoshen News</p>
+      <p>静态页面，由 GitHub Pages 发布。标有「示例 / 占位」的篇目不是新闻，也不构成投资建议。</p>
+    </footer>
+  </div>
+</body>
+</html>
