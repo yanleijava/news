@@ -1,0 +1,9 @@
+{{ define "main" }}
+<section class="publication compact wrap"><div class="publication-mark" aria-hidden="true"><span>{{ if eq .Section "weekly" }}W{{ else if eq .Section "daily" }}D{{ else }}N{{ end }}</span><small>F · T</small></div><p class="eyebrow">{{ if eq .Section "daily" }}DAILY BRIEFING{{ else if eq .Section "weekly" }}WEEKLY REVIEW{{ else }}THE JOURNAL{{ end }}</p><h1>{{ .Title }}</h1><p class="publication-desc">{{ .Description | default site.Params.description }}</p></section>
+<section class="feed wrap">
+  <nav class="feed-tabs" aria-label="文章栏目"><a href="{{ "" | relURL }}">最新更新</a><a class="{{ if eq .Section "daily" }}active{{ end }}" href="{{ "daily/" | relURL }}">每日速览</a><a class="{{ if eq .Section "weekly" }}active{{ end }}" href="{{ "weekly/" | relURL }}">每周观察</a></nav>
+  {{ $pages := .RegularPages }}{{ if or .IsHome (eq .Section "posts") }}{{ $pages = where site.RegularPages "Section" "in" (slice "daily" "weekly") }}{{ end }}{{ $pages = sort $pages "Date" "desc" }}
+  <div class="feed-heading"><h2>{{ .Title }}</h2><span>{{ len $pages }} 篇</span></div>
+  {{ if gt (len $pages) 0 }}<div class="article-list">{{ range $pages }}{{ partial "article-card.html" . }}{{ end }}</div>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>内容正在准备中</h3><p>新文章发布后会自动归档在这里。</p></div>{{ end }}
+</section>
+{{ end }}

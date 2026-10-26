@@ -1,0 +1,17 @@
+{{ define "main" }}
+{{ $articles := where site.RegularPages "Section" "in" (slice "daily" "weekly") }}
+{{ $articles = sort $articles "Date" "desc" }}
+<section class="publication wrap">
+  <div class="publication-mark" aria-hidden="true"><span>N</span><small>F · T</small></div>
+  <p class="eyebrow">FINANCE &amp; TECHNOLOGY JOURNAL</p>
+  <h1>{{ site.Title }}</h1>
+  <p class="publication-desc">{{ site.Params.tagline }}</p>
+  <div class="editor"><span class="editor-avatar">C</span><span>{{ site.Params.author }}<small>独立编辑 · 每日更新</small></span></div>
+</section>
+<section class="feed wrap" aria-labelledby="latest-title">
+  <nav class="feed-tabs" aria-label="文章栏目"><a class="active" href="{{ "" | relURL }}">最新更新</a><a href="{{ "daily/" | relURL }}">每日速览</a><a href="{{ "weekly/" | relURL }}">每周观察</a></nav>
+  <div class="feed-heading"><h2 id="latest-title">最新文章</h2><span>{{ len $articles }} 篇</span></div>
+  {{ if gt (len $articles) 0 }}<div class="article-list">{{ range $articles }}{{ partial "article-card.html" . }}{{ end }}</div>
+  {{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>第一篇报道，正在路上</h3><p>发布一篇日报或周报后，它就会显示在这里。</p></div>{{ end }}
+</section>
+{{ end }}

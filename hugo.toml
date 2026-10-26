@@ -1,0 +1,41 @@
+baseURL = "https://news.chaoshen.io/"
+title = "财经科技日报"
+timeZone = "Asia/Shanghai"
+enableRobotsTXT = true
+defaultContentLanguage = "zh-cn"
+summaryLength = 48
+paginate = 12
+
+[params]
+  brand = "CHAOSHEN · NEWS"
+  description = "每天读懂财经与科技：精选市场动态、产业趋势与重要产品更新。"
+  tagline = "把复杂的市场与技术，讲清楚。"
+  author = "Chaoshen News"
+
+[permalinks]
+  daily = "/:year/:month/:day/"
+  weekly = "/weekly/:year/:month/:day/"
+
+[menu]
+  [[menu.main]]
+    name = "每日速览"
+    url = "/daily/"
+    weight = 10
+  [[menu.main]]
+    name = "每周观察"
+    url = "/weekly/"
+    weight = 20
+  [[menu.main]]
+    name = "全部文章"
+    url = "/posts/"
+    weight = 30
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = false
+
+[outputs]
+  home = ["HTML", "RSS"]
+
+[taxonomies]
+  tag = "tags"
