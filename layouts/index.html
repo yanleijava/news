@@ -3,9 +3,7 @@
 {{ $articles = sort $articles "Date" "desc" }}
 <section class="publication wrap">
   <div class="publication-mark" aria-hidden="true"><span>N</span><small>F · T</small></div>
-  <p class="eyebrow">FINANCE &amp; TECHNOLOGY JOURNAL</p>
-  <h1>{{ site.Title }}</h1>
-  <p class="publication-desc">{{ site.Params.tagline }}</p>
+  <div class="publication-copy"><p class="eyebrow">FINANCE &amp; TECHNOLOGY JOURNAL</p><h1>{{ site.Title }}</h1><p class="publication-desc">{{ site.Params.tagline }}</p></div>
   <div class="editor"><span class="editor-avatar">C</span><span>{{ site.Params.author }}<small>独立编辑 · 每日更新</small></span></div>
 </section>
 <section class="feed wrap" aria-labelledby="latest-title">
