@@ -4,7 +4,8 @@ timeZone = "Asia/Shanghai"
 enableRobotsTXT = true
 defaultContentLanguage = "zh-cn"
 summaryLength = 48
-paginate = 12
+[pagination]
+  pagerSize = 12
 
 [params]
   brand = "CHAOSHEN · NEWS"
