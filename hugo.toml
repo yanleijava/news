@@ -5,7 +5,7 @@ enableRobotsTXT = true
 defaultContentLanguage = "zh-cn"
 summaryLength = 48
 [pagination]
-  pagerSize = 12
+  pagerSize = 7
 
 [params]
   brand = "CHAOSHEN · NEWS"

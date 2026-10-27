@@ -1,7 +1,7 @@
 <article class="article-row">
   <div class="article-stamp stamp-{{ .Section }}" aria-hidden="true"><span>{{ .Date.Format "02" }}</span><small>{{ if eq .Section "weekly" }}WEEK{{ else }}DAILY{{ end }}</small></div>
   <div class="article-copy">
-    <div class="row-meta"><span class="kind kind-{{ .Section }}">{{ if eq .Section "weekly" }}每周观察{{ else }}每日速览{{ end }}</span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年1月2日" }}</time></div>
+    <div class="row-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年1月2日" }}</time></div>
     <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
     {{ with .Description }}<p>{{ . }}</p>{{ else }}<p>{{ .Summary | plainify | htmlUnescape | truncate 120 }}</p>{{ end }}
     <div class="row-footer"><span>{{ .ReadingTime }} 分钟阅读</span>{{ with .Params.tags }}<span class="row-tags">{{ delimit . "　·　" }}</span>{{ end }}</div>

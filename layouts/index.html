@@ -1,15 +1,87 @@
 {{ define "main" }}
 {{ $articles := where site.RegularPages "Section" "in" (slice "daily" "weekly") }}
 {{ $articles = sort $articles "Date" "desc" }}
+{{ $daily := sort (where site.RegularPages "Section" "daily") "Date" "desc" }}
+{{ $weekly := sort (where site.RegularPages "Section" "weekly") "Date" "desc" }}
 <section class="publication wrap">
   <div class="publication-mark" aria-hidden="true"><span>N</span><small>F · T</small></div>
   <div class="publication-copy"><p class="eyebrow">FINANCE &amp; TECHNOLOGY JOURNAL</p><h1>{{ site.Title }}</h1><p class="publication-desc">{{ site.Params.tagline }}</p></div>
-  <div class="editor"><span class="editor-avatar">C</span><span>{{ site.Params.author }}<small>独立编辑 · 每日更新</small></span></div>
 </section>
-<section class="feed wrap" aria-labelledby="latest-title">
-  <nav class="feed-tabs" aria-label="文章栏目"><a class="active" href="{{ "" | relURL }}">最新更新</a><a href="{{ "daily/" | relURL }}">每日速览</a><a href="{{ "weekly/" | relURL }}">每周观察</a></nav>
-  <div class="feed-heading"><h2 id="latest-title">最新文章</h2><span>{{ len $articles }} 篇</span></div>
-  {{ if gt (len $articles) 0 }}<div class="article-list">{{ range $articles }}{{ partial "article-card.html" . }}{{ end }}</div>
-  {{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>第一篇报道，正在路上</h3><p>发布一篇日报或周报后，它就会显示在这里。</p></div>{{ end }}
+<section class="feed wrap" aria-label="日报与周报">
+  <div class="feed-tabs" role="tablist" aria-label="文章栏目">
+    <button class="feed-tab active" type="button" role="tab" id="tab-latest" aria-controls="panel-latest" aria-selected="true" tabindex="0" data-feed-tab="0">最新文章</button>
+    <button class="feed-tab" type="button" role="tab" id="tab-daily" aria-controls="panel-daily" aria-selected="false" tabindex="-1" data-feed-tab="1">每日速览</button>
+    <button class="feed-tab" type="button" role="tab" id="tab-weekly" aria-controls="panel-weekly" aria-selected="false" tabindex="-1" data-feed-tab="2">每周观察</button>
+  </div>
+  <div class="feed-window">
+    <div class="feed-track" id="feed-track">
+      <section class="feed-panel" id="panel-latest" role="tabpanel" aria-labelledby="tab-latest" aria-hidden="false">
+        {{ if gt (len $articles) 0 }}<div class="article-list">{{ range $articles }}{{ partial "article-card.html" . }}{{ end }}</div><nav class="tab-pagination" aria-label="最新文章分页" data-pagination hidden><button type="button" data-page-prev>上一页</button><span data-page-status aria-live="polite"></span><button type="button" data-page-next>下一页</button></nav>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>第一篇报道，正在路上</h3><p>发布一篇日报或周报后，它就会显示在这里。</p></div>{{ end }}
+      </section>
+      <section class="feed-panel" id="panel-daily" role="tabpanel" aria-labelledby="tab-daily" aria-hidden="true">
+        {{ if gt (len $daily) 0 }}<div class="article-list">{{ range $daily }}{{ partial "article-card.html" . }}{{ end }}</div><nav class="tab-pagination" aria-label="日报分页" data-pagination hidden><button type="button" data-page-prev>上一页</button><span data-page-status aria-live="polite"></span><button type="button" data-page-next>下一页</button></nav>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>日报内容正在准备中</h3><p>发布日报后会自动归档在这里。</p></div>{{ end }}
+      </section>
+      <section class="feed-panel" id="panel-weekly" role="tabpanel" aria-labelledby="tab-weekly" aria-hidden="true">
+        {{ if gt (len $weekly) 0 }}<div class="article-list">{{ range $weekly }}{{ partial "article-card.html" . }}{{ end }}</div><nav class="tab-pagination" aria-label="周报分页" data-pagination hidden><button type="button" data-page-prev>上一页</button><span data-page-status aria-live="polite"></span><button type="button" data-page-next>下一页</button></nav>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>周报内容正在准备中</h3><p>发布周报后会自动归档在这里。</p></div>{{ end }}
+      </section>
+    </div>
+  </div>
 </section>
+<script>
+(() => {
+  const tabs = [...document.querySelectorAll('[data-feed-tab]')];
+  const panels = [...document.querySelectorAll('.feed-panel')];
+  const track = document.getElementById('feed-track');
+  if (!track) return;
+  const activate = (index, focus = false) => {
+    tabs.forEach((tab, i) => {
+      const active = i === index;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+      panels[i].setAttribute('aria-hidden', String(!active));
+    });
+    track.style.setProperty('--active-index', index);
+    if (focus) tabs[index].focus();
+  };
+  panels.forEach((panel) => {
+    const cards = [...panel.querySelectorAll('.article-row')];
+    const pagination = panel.querySelector('[data-pagination]');
+    if (!pagination) return;
+    const previous = pagination.querySelector('[data-page-prev]');
+    const next = pagination.querySelector('[data-page-next]');
+    const status = pagination.querySelector('[data-page-status]');
+    const pageCount = Math.ceil(cards.length / 7);
+    let currentPage = 0;
+    const renderPage = () => {
+      cards.forEach((card, index) => {
+        card.hidden = index < currentPage * 7 || index >= (currentPage + 1) * 7;
+      });
+      pagination.hidden = pageCount <= 1;
+      status.textContent = `第 ${currentPage + 1} / ${pageCount} 页`;
+      previous.disabled = currentPage === 0;
+      next.disabled = currentPage >= pageCount - 1;
+    };
+    previous.addEventListener('click', () => {
+      if (currentPage > 0) { currentPage -= 1; renderPage(); }
+    });
+    next.addEventListener('click', () => {
+      if (currentPage < pageCount - 1) { currentPage += 1; renderPage(); }
+    });
+    renderPage();
+  });
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activate(index));
+    tab.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault();
+        activate((index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length, true);
+      } else if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        activate(event.key === 'Home' ? 0 : tabs.length - 1, true);
+      }
+    });
+  });
+})();
+</script>
 {{ end }}
