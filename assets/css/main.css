@@ -78,3 +78,10 @@ a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .feed-tab.active:after{height:2px;background:#303640}
 @media(max-width:700px){.publication{margin-top:78px;padding-bottom:34px}.publication-topline{gap:14px}.publication h1{font-size:24px}.publication-desc{font-size:12px}.publication-action{min-height:31px;padding-inline:9px;font-size:10px}.feed-tabs{gap:22px;padding:13px 0 15px}.feed-tabs a.feed-tab,.feed-tab{font-size:14px}}
 @media(max-width:480px){.publication{margin-top:66px}.publication-topline{align-items:center;gap:10px}.publication-logo{width:42px;height:42px;flex-basis:42px;border-radius:9px;font-size:25px}.publication-logo:after{border-radius:5px}.publication h1{font-size:20px}.publication-desc{max-width:235px;font-size:10px}.publication-actions{gap:5px}.publication-action{min-height:29px;padding-inline:7px;border-radius:7px;font-size:9px}.feed-tabs{gap:18px}.feed-tabs a.feed-tab,.feed-tab{font-size:13px}}
+.story.wrap{width:min(760px,calc(100% - 52px));max-width:760px}
+.story .prose{max-width:100%}
+.story.wrap{padding-bottom:28px}
+.story-pagination{border-bottom:0}
+.story-head .card-meta .reading-time{margin-left:auto}
+.site-footer{padding:18px 0 24px}
+@media(max-width:700px){.story.wrap{width:calc(100% - 34px)}}
