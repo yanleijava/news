@@ -1,5 +1,5 @@
 ---
-title: 财经科技日报
+title: 超神日报
 date: {{ .Date }}
 description: "用一两句话概括今日最重要的财经与科技动态。"
 tags: []

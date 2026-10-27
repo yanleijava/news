@@ -3,10 +3,7 @@
 {{ $articles = sort $articles "Date" "desc" }}
 {{ $daily := sort (where site.RegularPages "Section" "daily") "Date" "desc" }}
 {{ $weekly := sort (where site.RegularPages "Section" "weekly") "Date" "desc" }}
-<section class="publication wrap">
-  <div class="publication-mark" aria-hidden="true"><span>N</span><small>F · T</small></div>
-  <div class="publication-copy"><p class="eyebrow">FINANCE &amp; TECHNOLOGY JOURNAL</p><h1>{{ site.Title }}</h1><p class="publication-desc">{{ site.Params.tagline }}</p></div>
-</section>
+{{ partial "publication-heading.html" (dict "title" site.Title "description" site.Params.tagline) }}
 <section class="feed wrap" aria-label="日报与周报">
   <div class="feed-tabs" role="tablist" aria-label="文章栏目">
     <button class="feed-tab active" type="button" role="tab" id="tab-latest" aria-controls="panel-latest" aria-selected="true" tabindex="0" data-feed-tab="0">最新文章</button>

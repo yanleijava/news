@@ -1,4 +1,4 @@
-# 财经科技日报
+# 超神日报
 
 基于 Hugo 的中文财经科技日报 / 周报站点。每期日报和周报都是一篇独立 Markdown 文章；Hugo 自动生成文章页、栏目归档、首页和 RSS。站点部署在 GitHub Pages，自定义域名为 `news.chaoshen.io`。
 

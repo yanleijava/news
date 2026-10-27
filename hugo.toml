@@ -1,5 +1,5 @@
 baseURL = "https://news.chaoshen.io/"
-title = "财经科技日报"
+title = "超神日报"
 timeZone = "Asia/Shanghai"
 enableRobotsTXT = true
 defaultContentLanguage = "zh-cn"
