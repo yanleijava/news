@@ -1,12 +1,6 @@
 {{- $card := .Params.card -}}
 {{- $weekly := eq .Section "weekly" -}}
-{{- $wd := index (slice "周日" "周一" "周二" "周三" "周四" "周五" "周六") .Date.Weekday -}}
 <div class="brief">
-  <header class="brief-mast">
-    <p class="brief-brand">超神投资<span class="mv mv-sep">|</span>{{ if $weekly }}财经科技周报{{ else }}财经科技早报{{ end }}</p>
-    <p class="brief-date">{{ .Date.Format "1月2日" }} · {{ $wd }}</p>
-  </header>
-
   {{- with $card.market }}
   <section class="brief-sec">
     <h2 class="brief-label">
@@ -72,6 +66,4 @@
     </ul>
   </section>
   {{- end }}
-
-  <footer class="brief-foot">超神投资 · 关注科技、财经、加密市场与交易机会</footer>
 </div>

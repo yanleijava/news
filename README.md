@@ -1,6 +1,6 @@
 # 超神日报
 
-基于 Hugo 的中文财经科技日报 / 周报站点。每期日报和周报都是一篇独立 Markdown；Hugo 用结构化 front matter 渲染成白底卡片，并生成文章页、栏目归档、首页和 RSS。站点部署在 GitHub Pages，自定义域名为 `news.chaoshen.io`。
+基于 Hugo 的中文财经科技日报 / 周报站点。每期日报和周报都是一篇独立 Markdown；Hugo 用结构化 front matter 渲染正文的四个栏目，并生成文章页、栏目归档、首页和 RSS。站点部署在 GitHub Pages，自定义域名为 `news.chaoshen.io`。
 
 ## 发布新一期
 
@@ -29,7 +29,7 @@ hugo new content content/weekly/2026-11-01.md --kind weekly
 
 ## 日报 / 周报文件格式
 
-自动化只需要新增一个 Markdown 文件。正文数据全部放在 front matter 的 `card` 里，正文只留一行 shortcode，让 RSS 输出同一张卡片：
+自动化只需要新增一个 Markdown 文件。正文数据全部放在 front matter 的 `card` 里，正文只留一行 shortcode，让 RSS 输出同一份正文：
 
 ```markdown
 ---
@@ -59,7 +59,7 @@ card:
 {{< brief >}}
 ```
 
-正文只有最后这一行 shortcode。页面本身由 `card` 渲染；这一行让 RSS 得到同一张卡片。
+正文只有最后这一行 shortcode。页面本身由 `card` 渲染；这一行让 RSS 得到同一份正文。
 
 `layouts/partials/brief-card.html` 读取 `card`。日报固定四个栏目；周报用同一结构，模板按 `weekly` 栏目改标题：
 
@@ -84,7 +84,7 @@ card:
 - `{down}-1.23%{/down}`：下跌，绿色
 - `{num}116.7{/num}`：关键数字，加粗
 
-卡片样式在 `assets/css/main.css` 的 `.brief` 一段。模板见 `archetypes/daily.md` 和 `archetypes/weekly.md`。
+栏目样式在 `assets/css/main.css` 的 `.brief` 一段，宽度与普通正文相同。模板见 `archetypes/daily.md` 和 `archetypes/weekly.md`。
 
 ## 本地预览
 
@@ -106,7 +106,7 @@ hugo --minify
 
 ```text
 archetypes/                 日报、周报新文章模板
-assets/css/main.css         站点样式（含卡片版式，构建时压缩并指纹化）
+assets/css/main.css         站点样式（含日报栏目版式，构建时压缩并指纹化）
 content/daily/              日报 Markdown
 content/weekly/             周报 Markdown
 content/posts/              全部文章归档页
