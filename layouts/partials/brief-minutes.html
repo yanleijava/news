@@ -1,0 +1,27 @@
+{{- $scratch := newScratch -}}
+{{- with .Params.card.market -}}
+  {{- range . -}}
+    {{- range .bullets -}}
+      {{- $scratch.Add "n" (strings.CountRunes .) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- with .Params.card.tech -}}
+  {{- range . -}}
+    {{- $scratch.Add "n" (strings.CountRunes .name) -}}
+    {{- $scratch.Add "n" (strings.CountRunes .text) -}}
+  {{- end -}}
+{{- end -}}
+{{- with .Params.card.judgment -}}
+  {{- with .lead }}{{ $scratch.Add "n" (strings.CountRunes .) }}{{ end -}}
+  {{- with .body }}{{ $scratch.Add "n" (strings.CountRunes .) }}{{ end -}}
+{{- end -}}
+{{- with .Params.card.watch -}}
+  {{- range . -}}
+    {{- $scratch.Add "n" (strings.CountRunes .when) -}}
+    {{- $scratch.Add "n" (strings.CountRunes .text) -}}
+  {{- end -}}
+{{- end -}}
+{{- $mins := div (add ($scratch.Get "n" | default 0) 399) 400 -}}
+{{- if lt $mins 1 }}{{ $mins = 1 }}{{ end -}}
+{{- return $mins -}}

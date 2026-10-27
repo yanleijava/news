@@ -1,0 +1,10 @@
+{{- $s := . | htmlEscape -}}
+{{- $s = replace $s "{up}" "<span class=\"mv mv-up\">" -}}
+{{- $s = replace $s "{/up}" "</span>" -}}
+{{- $s = replace $s "{down}" "<span class=\"mv mv-down\">" -}}
+{{- $s = replace $s "{/down}" "</span>" -}}
+{{- $s = replace $s "{num}" "<span class=\"mv mv-num\">" -}}
+{{- $s = replace $s "{/num}" "</span>" -}}
+{{- $s = replace $s "{sep}" "<span class=\"mv mv-sep\">" -}}
+{{- $s = replace $s "{/sep}" "</span>" -}}
+{{- return ($s | safeHTML) -}}
