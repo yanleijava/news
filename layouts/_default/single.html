@@ -1,8 +1,8 @@
 {{ define "main" }}
 <article class="story wrap">
   <header class="story-head">
-    <a class="back-link" href="{{ .CurrentSection.RelPermalink }}">← 返回{{ if eq .Section "weekly" }}每周观察{{ else }}每日速览{{ end }}</a>
-    <div class="card-meta"><span class="kind kind-{{ .Section }}">{{ if eq .Section "weekly" }}每周观察{{ else }}每日速览{{ end }}</span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年1月2日" }}</time><span class="reading-time">{{ if .Params.card }}{{ partial "brief-minutes.html" . }}{{ else }}{{ div (add (countwords .Content) 259) 260 }}{{ end }} 分钟阅读</span></div>
+    <a class="back-link" href="{{ .CurrentSection.RelPermalink }}">← 返回{{ if eq .Section "weekly" }}周报{{ else }}日报{{ end }}</a>
+    <div class="card-meta"><span class="kind kind-{{ .Section }}">{{ if eq .Section "weekly" }}周报{{ else }}日报{{ end }}</span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年1月2日" }}</time><span class="reading-time">{{ if .Params.card }}{{ partial "brief-minutes.html" . }}{{ else }}{{ div (add (countwords .Content) 259) 260 }}{{ end }} 分钟阅读</span></div>
     <h1>{{ .Title }}</h1>
     {{ with .Description }}<p class="story-deck">{{ . }}</p>{{ end }}
     {{ if .Params.sample }}<p class="sample-note">示例 / 占位：本篇不是真实新闻，仅用于展示站点版式。</p>{{ end }}

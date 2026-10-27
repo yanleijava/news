@@ -1,21 +1,15 @@
 {{ define "main" }}
-{{ $articles := where site.RegularPages "Section" "in" (slice "daily" "weekly") }}
-{{ $articles = sort $articles "Date" "desc" }}
 {{ $daily := sort (where site.RegularPages "Section" "daily") "Date" "desc" }}
 {{ $weekly := sort (where site.RegularPages "Section" "weekly") "Date" "desc" }}
 {{ partial "publication-heading.html" (dict "title" site.Title "description" site.Params.tagline) }}
 <section class="feed wrap" aria-label="日报与周报">
   <div class="feed-tabs" role="tablist" aria-label="文章栏目">
-    <button class="feed-tab active" type="button" role="tab" id="tab-latest" aria-controls="panel-latest" aria-selected="true" tabindex="0" data-feed-tab="0">最新文章</button>
-    <button class="feed-tab" type="button" role="tab" id="tab-daily" aria-controls="panel-daily" aria-selected="false" tabindex="-1" data-feed-tab="1">每日速览</button>
-    <button class="feed-tab" type="button" role="tab" id="tab-weekly" aria-controls="panel-weekly" aria-selected="false" tabindex="-1" data-feed-tab="2">每周观察</button>
+    <button class="feed-tab active" type="button" role="tab" id="tab-daily" aria-controls="panel-daily" aria-selected="true" tabindex="0" data-feed-tab="0">日报</button>
+    <button class="feed-tab" type="button" role="tab" id="tab-weekly" aria-controls="panel-weekly" aria-selected="false" tabindex="-1" data-feed-tab="1">周报</button>
   </div>
   <div class="feed-window">
     <div class="feed-track" id="feed-track">
-      <section class="feed-panel" id="panel-latest" role="tabpanel" aria-labelledby="tab-latest" aria-hidden="false">
-        {{ if gt (len $articles) 0 }}<div class="article-list">{{ range $articles }}{{ partial "article-card.html" . }}{{ end }}</div><nav class="tab-pagination" aria-label="最新文章分页" data-pagination hidden><button type="button" data-page-prev>上一页</button><span data-page-status aria-live="polite"></span><button type="button" data-page-next>下一页</button></nav>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>第一篇报道，正在路上</h3><p>发布一篇日报或周报后，它就会显示在这里。</p></div>{{ end }}
-      </section>
-      <section class="feed-panel" id="panel-daily" role="tabpanel" aria-labelledby="tab-daily" aria-hidden="true">
+      <section class="feed-panel" id="panel-daily" role="tabpanel" aria-labelledby="tab-daily" aria-hidden="false">
         {{ if gt (len $daily) 0 }}<div class="article-list">{{ range $daily }}{{ partial "article-card.html" . }}{{ end }}</div><nav class="tab-pagination" aria-label="日报分页" data-pagination hidden><button type="button" data-page-prev>上一页</button><span data-page-status aria-live="polite"></span><button type="button" data-page-next>下一页</button></nav>{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>日报内容正在准备中</h3><p>发布日报后会自动归档在这里。</p></div>{{ end }}
       </section>
       <section class="feed-panel" id="panel-weekly" role="tabpanel" aria-labelledby="tab-weekly" aria-hidden="true">
