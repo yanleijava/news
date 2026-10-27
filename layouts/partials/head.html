@@ -3,7 +3,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
   <meta name="description" content="{{ .Description | default .Summary | default site.Params.description | plainify | htmlEscape }}">
-  <meta name="theme-color" content="#fbfaf8">
+  <meta name="theme-color" content="#ffffff">
+  <script>
+    (() => {
+      try {
+        if (localStorage.getItem('chaoshen-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch {}
+      const syncThemeButton = () => {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+          button.setAttribute('aria-pressed', String(dark));
+          button.setAttribute('aria-label', dark ? '切换浅色主题' : '切换深色主题');
+          button.title = dark ? '切换浅色主题' : '切换深色主题';
+        });
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) themeColor.content = dark ? '#111418' : '#ffffff';
+      };
+      document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-theme-toggle]');
+        if (!button) return;
+        const dark = document.documentElement.dataset.theme !== 'dark';
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        try { localStorage.setItem('chaoshen-theme', dark ? 'dark' : 'light'); } catch {}
+        syncThemeButton();
+      });
+      document.addEventListener('DOMContentLoaded', syncThemeButton);
+    })();
+  </script>
   <link rel="canonical" href="{{ .Permalink }}">
   <link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
   {{ with resources.Get "css/main.css" }}{{ $style := . | minify | fingerprint }}
