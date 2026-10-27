@@ -4,7 +4,7 @@
     <div class="row-meta"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date | time.Format "2006年1月2日" }}</time></div>
     <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
     {{ with .Description }}<p>{{ . }}</p>{{ else }}<p>{{ .Summary | plainify | htmlUnescape | truncate 120 }}</p>{{ end }}
-    <div class="row-footer"><span>{{ .ReadingTime }} 分钟阅读</span>{{ with .Params.tags }}<span class="row-tags">{{ delimit . "　·　" }}</span>{{ end }}</div>
+    <div class="row-footer"><span>{{ if .Params.card }}{{ partial "brief-minutes.html" . }}{{ else }}{{ .ReadingTime }}{{ end }} 分钟阅读</span>{{ with .Params.tags }}<span class="row-tags">{{ delimit . "　·　" }}</span>{{ end }}</div>
   </div>
   <a class="row-arrow" href="{{ .RelPermalink }}" aria-label="阅读：{{ .Title }}"><span aria-hidden="true">↗</span></a>
 </article>
