@@ -18,4 +18,20 @@
   {{ with .Params.tags }}<footer class="story-tags">{{ range . }}<a href="{{ (printf "/tags/%s/" (. | urlize)) | relURL }}"># {{ . }}</a>{{ end }}</footer>{{ end }}
   {{ if or .PrevInSection .NextInSection }}<nav class="story-pagination" aria-label="文章导航">{{ with .PrevInSection }}<a href="{{ .RelPermalink }}"><small>上一篇</small><span>{{ .Title }}</span></a>{{ end }}{{ with .NextInSection }}<a class="next-story" href="{{ .RelPermalink }}"><small>下一篇</small><span>{{ .Title }}</span></a>{{ end }}</nav>{{ end }}
 </article>
+{{ if or (eq .Section "daily") (eq .Section "weekly") }}
+<script>
+(() => {
+  try {
+    const key = 'news-read';
+    const path = {{ .RelPermalink | jsonify | safeJS }};
+    const raw = localStorage.getItem(key);
+    const list = raw ? JSON.parse(raw) : [];
+    const read = new Set(Array.isArray(list) ? list : []);
+    if (read.has(path)) return;
+    read.add(path);
+    localStorage.setItem(key, JSON.stringify([...read]));
+  } catch {}
+})();
+</script>
+{{ end }}
 {{ end }}

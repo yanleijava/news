@@ -6,4 +6,5 @@
   <div class="feed-heading"><h2>{{ .Title }}</h2><span>{{ len $pages }} 篇</span></div>
   {{ if gt (len $pages) 0 }}<div class="article-list">{{ range $paginator.Pages }}{{ partial "article-card.html" . }}{{ end }}</div>{{ partial "pagination.html" $paginator }}{{ else }}<div class="empty-state"><span class="empty-icon">✳</span><h3>内容正在准备中</h3><p>新文章发布后会自动归档在这里。</p></div>{{ end }}
 </section>
+{{ partial "mark-read.html" . }}
 {{ end }}

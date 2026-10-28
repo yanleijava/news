@@ -1,0 +1,23 @@
+<script>
+(() => {
+  const mark = () => {
+    try {
+      const raw = localStorage.getItem('news-read');
+      const list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) return;
+      const read = new Set(list);
+      document.querySelectorAll('.article-row').forEach((row) => {
+        const link = row.querySelector('h3 a');
+        const href = link && link.getAttribute('href');
+        if (!href) return;
+        row.classList.toggle('is-read', read.has(href));
+      });
+    } catch {}
+  };
+  mark();
+  window.addEventListener('pageshow', mark);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') mark();
+  });
+})();
+</script>
